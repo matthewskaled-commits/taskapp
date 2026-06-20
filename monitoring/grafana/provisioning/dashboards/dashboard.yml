@@ -1,0 +1,11 @@
+# Le dice a Grafana que cargue automaticamente los dashboards
+# que esten en esta misma carpeta al arrancar.
+apiVersion: 1
+
+providers:
+  - name: 'TaskApp Dashboards'
+    orgId: 1
+    folder: ''
+    type: file
+    options:
+      path: /etc/grafana/provisioning/dashboards

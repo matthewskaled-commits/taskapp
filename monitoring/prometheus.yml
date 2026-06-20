@@ -1,0 +1,17 @@
+# Prometheus funciona "tirando" (scraping) metricas de cada servicio
+# cada cierto tiempo (scrape_interval), en vez de que los servicios se las envien.
+global:
+  scrape_interval: 10s
+  evaluation_interval: 10s
+
+scrape_configs:
+  # Prometheus se monitorea a si mismo (buena practica estandar)
+  - job_name: 'prometheus'
+    static_configs:
+      - targets: ['localhost:9090']
+
+  # Backend de TaskApp: lee metricas desde /metrics cada 10 segundos
+  - job_name: 'taskapp-backend'
+    metrics_path: /metrics
+    static_configs:
+      - targets: ['backend:4000']

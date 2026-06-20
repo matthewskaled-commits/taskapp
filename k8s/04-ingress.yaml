@@ -1,0 +1,25 @@
+# El Ingress cumple el mismo rol que NGINX en docker-compose:
+# es la puerta de entrada unica al cluster desde afuera.
+# Requiere tener un Ingress Controller instalado en minikube
+# (se habilita con: minikube addons enable ingress)
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: taskapp-ingress
+  namespace: taskapp
+  annotations:
+    nginx.ingress.kubernetes.io/rewrite-target: /$2
+spec:
+  ingressClassName: nginx
+  rules:
+    - host: taskapp.local
+      http:
+        paths:
+          - path: /api(/|$)(.*)
+            pathType: ImplementationSpecific
+            backend:
+              service: { name: backend, port: { number: 4000 } }
+          - path: /(.*)
+            pathType: ImplementationSpecific
+            backend:
+              service: { name: frontend, port: { number: 80 } }

@@ -1,0 +1,6 @@
+# Un "namespace" es como una carpeta dentro del cluster de Kubernetes
+# para mantener todos los recursos de este proyecto agrupados y aislados.
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: taskapp

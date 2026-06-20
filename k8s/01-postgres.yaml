@@ -1,0 +1,64 @@
+# --- Almacenamiento persistente para la base de datos ---
+# Sin esto, los datos se perderian cada vez que el contenedor se reinicia.
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: postgres-pvc
+  namespace: taskapp
+spec:
+  accessModes: ["ReadWriteOnce"]
+  resources:
+    requests:
+      storage: 1Gi
+---
+# --- Credenciales de la base de datos como "Secret" ---
+# No se guardan como texto plano en el codigo, sino como un recurso aparte.
+apiVersion: v1
+kind: Secret
+metadata:
+  name: postgres-secret
+  namespace: taskapp
+type: Opaque
+stringData:
+  POSTGRES_USER: taskapp
+  POSTGRES_PASSWORD: taskapp123
+  POSTGRES_DB: taskapp_db
+---
+# --- Deployment: define COMO correr el contenedor de Postgres ---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: postgres
+  namespace: taskapp
+spec:
+  replicas: 1
+  selector:
+    matchLabels: { app: postgres }
+  template:
+    metadata:
+      labels: { app: postgres }
+    spec:
+      containers:
+        - name: postgres
+          image: postgres:16-alpine
+          ports: [{ containerPort: 5432 }]
+          envFrom:
+            - secretRef: { name: postgres-secret }
+          volumeMounts:
+            - name: postgres-storage
+              mountPath: /var/lib/postgresql/data
+      volumes:
+        - name: postgres-storage
+          persistentVolumeClaim: { claimName: postgres-pvc }
+---
+# --- Service: la "direccion interna" para que el backend encuentre a Postgres ---
+apiVersion: v1
+kind: Service
+metadata:
+  name: postgres
+  namespace: taskapp
+spec:
+  selector: { app: postgres }
+  ports:
+    - port: 5432
+      targetPort: 5432

@@ -1,0 +1,109 @@
+# Este workflow se ejecuta automaticamente cada vez que se hace push
+# o se abre un Pull Request hacia la rama main/develop.
+# Cumple el rol de "integracion continua" (CI): valida que el codigo
+# nuevo no rompe nada antes de fusionarlo.
+name: CI - TaskApp
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main, develop]
+
+jobs:
+  backend:
+    name: Backend - Lint y pruebas
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: backend
+    steps:
+      - name: Descargar el codigo del repositorio
+        uses: actions/checkout@v4
+
+      - name: Configurar Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+          cache-dependency-path: backend/package-lock.json
+
+      - name: Instalar dependencias
+        run: npm install
+
+      - name: Ejecutar linter
+        run: npm run lint
+
+      - name: Ejecutar pruebas automatizadas
+        run: npm test
+
+  frontend:
+    name: Frontend - Lint y build
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: frontend
+    steps:
+      - name: Descargar el codigo del repositorio
+        uses: actions/checkout@v4
+
+      - name: Configurar Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+          cache-dependency-path: frontend/package-lock.json
+
+      - name: Instalar dependencias
+        run: npm install
+
+      - name: Ejecutar linter
+        run: npm run lint
+
+      - name: Compilar la aplicacion (build de produccion)
+        run: npm run build
+
+  pruebas-api-postman:
+    name: Pruebas de API con Newman (Postman)
+    runs-on: ubuntu-latest
+    needs: backend
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_USER: taskapp
+          POSTGRES_PASSWORD: taskapp123
+          POSTGRES_DB: taskapp_db
+        ports: ["5432:5432"]
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 5
+    steps:
+      - name: Descargar el codigo del repositorio
+        uses: actions/checkout@v4
+
+      - name: Configurar Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Instalar dependencias del backend
+        working-directory: backend
+        run: npm install
+
+      - name: Levantar el backend en segundo plano
+        working-directory: backend
+        env:
+          DB_HOST: localhost
+          DB_USER: taskapp
+          DB_PASSWORD: taskapp123
+          DB_NAME: taskapp_db
+        run: nohup node src/index.js & npx wait-on http://localhost:4000/health
+
+      - name: Instalar Newman (motor de Postman para CI)
+        run: npm install -g newman
+
+      - name: Ejecutar la coleccion de Postman
+        run: newman run backend/postman/taskapp.postman_collection.json --env-var base_url=http://localhost:4000

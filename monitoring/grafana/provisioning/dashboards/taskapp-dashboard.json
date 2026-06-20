@@ -1,0 +1,44 @@
+{
+  "title": "TaskApp - Observabilidad",
+  "timezone": "browser",
+  "schemaVersion": 39,
+  "version": 1,
+  "panels": [
+    {
+      "id": 1,
+      "title": "Peticiones HTTP por segundo",
+      "type": "timeseries",
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 0 },
+      "targets": [
+        { "expr": "rate(http_requests_total[1m])", "legendFormat": "{{method}} {{route}}" }
+      ]
+    },
+    {
+      "id": 2,
+      "title": "Peticiones totales por status code",
+      "type": "piechart",
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 0 },
+      "targets": [
+        { "expr": "sum by (status) (http_requests_total)", "legendFormat": "{{status}}" }
+      ]
+    },
+    {
+      "id": 3,
+      "title": "Uso de memoria del backend (Node.js)",
+      "type": "timeseries",
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 8 },
+      "targets": [
+        { "expr": "process_resident_memory_bytes{job=\"taskapp-backend\"}", "legendFormat": "memoria (bytes)" }
+      ]
+    },
+    {
+      "id": 4,
+      "title": "Backend disponible (1 = arriba)",
+      "type": "stat",
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 8 },
+      "targets": [
+        { "expr": "up{job=\"taskapp-backend\"}" }
+      ]
+    }
+  ]
+}

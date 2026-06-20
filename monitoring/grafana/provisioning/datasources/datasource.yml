@@ -1,0 +1,11 @@
+# Le dice a Grafana, automaticamente al arrancar, donde esta Prometheus.
+# Asi no hay que configurarlo a mano desde la interfaz cada vez.
+apiVersion: 1
+
+datasources:
+  - name: Prometheus
+    type: prometheus
+    access: proxy
+    url: http://prometheus:9090
+    isDefault: true
+    editable: true
