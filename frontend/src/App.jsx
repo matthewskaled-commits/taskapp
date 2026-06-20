@@ -116,7 +116,7 @@ export default function App() {
       </main>
 
       <footer className="text-center text-slate/60 text-sm py-8">
-        Proyecto Integrado &mdash; Herramientas y Servicios para Desarrolladores en la Web
+        TaskApp &mdash; Matthews Kaled Aguilar Espinoza &mdash; ISAM
       </footer>
     </div>
   );
